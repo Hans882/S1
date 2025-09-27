@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Water Guardian</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f9fafb;
+            color: #111827;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 24px;
+            min-height: 100vh;
+        }
+
+        .header {
+            margin-bottom: 32px;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #111827;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            color: #6b7280;
+        }
+
+        .icon {
+            width: 24px;
+            height: 24px;
+            fill: currentColor;
+        }
+
+        .icon-lg {
+            width: 32px;
+            height: 32px;
+        }
+
+        .nav-tabs {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .tab-button {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.2s;
+            background: white;
+            color: #6b7280;
+            border: 1px solid #e5e7eb;
+        }
+
+        .tab-button:hover {
+            background-color: #f9fafb;
+        }
+
+        .tab-button.active {
+            background-color: #2563eb;
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            border-color: #2563eb;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 24px;
+            margin-bottom: 32px;
+        }
+
+        .stat-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .stat-card-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .stat-card h3 {
+            color: #6b7280;
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 8px;
+        }
+
+        .stat-card .value {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #2563eb;
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value.green {
+            color: #059669;
+        }
+
+        .stat-card .value.red {
+            color: #dc2626;
+        }
+
+        .stat-card .subtitle {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .stat-icon {
+            padding: 12px;
+            border-radius: 50%;
+            background-color: #dbeafe;
+        }
+
+        .stat-icon.green {
+            background-color: #d1fae5;
+        }
+
+        .stat-icon.red {
+            background-color: #fee2e2;
+        }
+
+        .chart-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+            margin-bottom: 32px;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .chart-header h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #111827;
+        }
+
+        .chart-header select {
+            padding: 8px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+            color: #374151;
+        }
+
+        .chart-header select:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .alerts-container {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .alerts-container h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+
+        .alert-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            border: 1px solid #e5e7eb;
+            margin-bottom: 16px;
+        }
+
+        .alert-item:last-child {
+            margin-bottom: 0;
+        }
+
+        .alert-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .alert-status {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        .alert-status.active {
+            background-color: #ef4444;
+        }
+
+        .alert-status.resolved {
+            background-color: #10b981;
+        }
+
+        .alert-info h4 {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .alert-info p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .alert-meta {
+            text-align: right;
+        }
+
+        .alert-meta p {
+            color: #6b7280;
+            font-size: 0.875rem;
+            margin-bottom: 4px;
+        }
+
+        .alert-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+
+        .alert-badge.active {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .alert-badge.resolved {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .notification-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .notification-card h2 {
+            font-size: 1.25rem;
+            font-weight: bold;
+            color: #111827;
+            margin-bottom: 24px;
+        }
+
+        .dnd-toggle {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            background: #f9fafb;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .dnd-content {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .dnd-content h3 {
+            font-weight: 600;
+            color: #111827;
+            margin-bottom: 4px;
+        }
+
+        .dnd-content p {
+            color: #6b7280;
+            font-size: 0.875rem;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 44px;
+            height: 24px;
+            background: #d1d5db;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .toggle-switch.active {
+            background: #2563eb;
+        }
+
+        .toggle-switch::after {
+            content: '';
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 20px;
+            height: 20px;
+            background: white;
+            border-radius: 50%;
+            transition: transform 0.2s;
+        }
+
+        .toggle-switch.active::after {
+            transform: translateX(20px);
+        }
+
+        .notification-option {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .notification-option:last-child {
+            margin-bottom: 0;
+        }
+
+        .notification-option.disabled {
+            opacity: 0.5;
+        }
+
+        .threshold-settings {
+            margin-top: 24px;
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+
+        .threshold-settings h3 {
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .threshold-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 16px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: #374151;
+            margin-bottom: 8px;
+        }
+
+        .form-group input {
+            padding: 8px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            background: white;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        .save-button {
+            display: flex;
+            justify-content: flex-end;
+            margin-top: 24px;
+        }
+
+        .save-button button {
+            background: #2563eb;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .save-button button:hover {
+            background: #1d4ed8;
+        }
+
+        .settings-card {
+            background: white;
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e5e7eb;
+        }
+
+        .settings-section {
+            padding: 16px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+            margin-bottom: 24px;
+        }
+
+        .settings-section h3 {
+            font-weight: 500;
+            color: #111827;
+            margin-bottom: 16px;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
+        }
+
+        @media (max-width: 768px) {
+            .nav-tabs {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+            
+            .alert-item {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 12px;
+            }
+            
+            .threshold-grid,
+            .settings-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>
+                <svg class="icon icon-lg" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                    <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                    <circle cx="12" cy="12" r="3"/>
+                </svg>
+                Smart Water Guardian
+            </h1>
+            <p>Intelligent water management for apartment complexes</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <div class="nav-tabs">
+            <button class="tab-button active" data-tab="dashboard">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                    <polyline points="9,22 9,12 15,12 15,22"/>
+                </svg>
+                Dashboard
+            </button>
+            <button class="tab-button" data-tab="notifications">
+                <svg class="icon bell-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                </svg>
+                Notifications
+            </button>
+            <button class="tab-button" data-tab="settings">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="3"/>
+                    <path d="M12 1v6m0 10v6m11-7h-6m-10 0H1M20.49 20.49l-1.06-1.06m-11.31 0L7.05 18.36M20.49 3.51l-1.06 1.06M8.12 8.12L7.05 7.05"/>
+                </svg>
+                Settings
+            </button>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab">
+            <!-- Key Metrics -->
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <h3>Average Daily Usage</h3>
+                            <div class="value" id="avg-usage">287L</div>
+                            <div class="subtitle">Last 7 days</div>
+                        </div>
+                        <div class="stat-icon">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <h3>Today's Usage</h3>
+                            <div class="value green" id="today-usage">298L</div>
+                            <div class="subtitle" id="usage-change">-10.8% from yesterday</div>
+                        </div>
+                        <div class="stat-icon green">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+                                <polyline points="9,22 9,12 15,12 15,22"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-card-content">
+                        <div>
+                            <h3>Active Alerts</h3>
+                            <div class="value red" id="active-alerts">1</div>
+                            <div class="subtitle" id="total-alerts">2 total alerts today</div>
+                        </div>
+                        <div class="stat-icon red">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/>
+                                <line x1="12" y1="9" x2="12" y2="13"/>
+                                <line x1="12" y1="17" x2="12.01" y2="17"/>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Water Usage Chart -->
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2>Weekly Water Usage</h2>
+                    <select id="flat-selector">
+                        <option value="all">All Flats</option>
+                        <option value="flatB203">Flat B203</option>
+                        <option value="flatB204">Flat B204</option>
+                        <option value="flatB205">Flat B205</option>
+                    </select>
+                </div>
+                <div style="height: 300px; position: relative;">
+                    <canvas id="usage-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Recent Alerts -->
+            <div class="alerts-container">
+                <h2>Recent Water Alerts</h2>
+                <div id="alerts-list">
+                    <!-- Alerts will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Tab -->
+        <div id="notifications-tab" class="hidden">
+            <div class="notification-card">
+                <h2>Notification Preferences</h2>
+                
+                <!-- DND Mode Toggle -->
+                <div class="dnd-toggle">
+                    <div class="dnd-content">
+                        <svg class="icon bell-off-icon hidden" viewBox="0 0 24 24" fill="none" stroke="#6b7280" stroke-width="2">
+                            <path d="M6.2 6.2a6 6 0 1012.8 12.8"/>
+                            <path d="M6.2 6.2L4 4m15.8 15.8L22 22"/>
+                            <path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                        </svg>
+                        <svg class="icon bell-on-icon" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                            <path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                            <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                        </svg>
+                        <div>
+                            <h3>Do Not Disturb Mode</h3>
+                            <p>Temporarily disable all notifications</p>
+                        </div>
+                    </div>
+                    <div class="toggle-switch" id="dnd-toggle"></div>
+                </div>
+
+                <!-- Notification Types -->
+                <div id="notification-options">
+                    <div class="notification-option" id="sms-option">
+                        <div class="dnd-content">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+                                <line x1="12" y1="18" x2="12.01" y2="18"/>
+                            </svg>
+                            <div>
+                                <h3>SMS Notifications</h3>
+                                <p>Get alerts via text message</p>
+                            </div>
+                        </div>
+                        <div class="toggle-switch active" id="sms-toggle"></div>
+                    </div>
+
+                    <div class="notification-option" id="email-option">
+                        <div class="dnd-content">
+                            <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="#2563eb" stroke-width="2">
+                                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                                <polyline points="22,6 12,13 2,6"/>
+                            </svg>
+                            <div>
+                                <h3>Email Notifications</h3>
+                                <p>Receive alerts via email</p>
+                            </div>
+                        </div>
+                        <div class="toggle-switch active" id="email-toggle"></div>
+                    </div>
+                </div>
+
+                <!-- Threshold Settings -->
+                <div class="threshold-settings">
+                    <h3>Alert Thresholds</h3>
+                    <div class="threshold-grid">
+                        <div class="form-group">
+                            <label for="threshold-minutes">Alert after (minutes)</label>
+                            <input type="number" id="threshold-minutes" min="1" max="30" value="3">
+                        </div>
+                        <div class="form-group">
+                            <label for="escalation-delay">Escalation delay (minutes)</label>
+                            <input type="number" id="escalation-delay" min="5" max="60" value="10">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Save Button -->
+                <div class="save-button">
+                    <button onclick="saveNotificationSettings()">Save Notification Settings</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Tab -->
+        <div id="settings-tab" class="hidden">
+            <div class="settings-card">
+                <h2>System Settings</h2>
+                
+                <div class="settings-section">
+                    <h3>Contact Information</h3>
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label for="phone">Phone Number</label>
+                            <input type="tel" id="phone" placeholder="+91-98765XXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label for="email">Email Address</label>
+                            <input type="email" id="email" placeholder="resident@example.com">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="settings-section">
+                    <h3>Building Manager Contact</h3>
+                    <div class="settings-grid">
+                        <div class="form-group">
+                            <label for="manager-phone">Manager Phone</label>
+                            <input type="tel" id="manager-phone" placeholder="+91-90000XXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label for="manager-email">Manager Email</label>
+                            <input type="email" id="manager-email" placeholder="manager@building.com">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Application State
+        const appState = {
+            activeTab: 'dashboard',
+            selectedFlat: 'all',
+            waterUsageData: [
+                { day: 'Mon', usage: 245, flatB203: 85, flatB204: 92, flatB205: 68 },
+                { day: 'Tue', usage: 312, flatB203: 120, flatB204: 98, flatB205: 94 },
+                { day: 'Wed', usage: 278, flatB203: 95, flatB204: 88, flatB205: 95 },
+                { day: 'Thu', usage: 289, flatB203: 102, flatB204: 96, flatB205: 91 },
+                { day: 'Fri', usage: 256, flatB203: 88, flatB204: 82, flatB205: 86 },
+                { day: 'Sat', usage: 334, flatB203: 125, flatB204: 108, flatB205: 101 },
+                { day: 'Sun', usage: 298, flatB203: 98, flatB204: 102, flatB205: 98 }
+            ],
+            alerts: [
+                {
+                    id: 1,
+                    flatId: 'B203',
+                    tapId: 'WASH2',
+                    duration: 8,
+                    timestamp: '2024-09-21 14:32',
+                    status: 'resolved'
+                },
+                {
+                    id: 2,
+                    flatId: 'B205',
+                    tapId: 'KITCHEN1',
+                    duration: 12,
+                    timestamp: '2024-09-21 09:15',
+                    status: 'active'
+                }
+            ],
+            notificationSettings: {
+                globalNotifications: true,
+                smsNotifications: true,
+                emailNotifications: true,
+                dndMode: false,
+                thresholdMinutes: 3,
+                escalationDelay: 10
+            }
+        };
+
+        let usageChart;
+
+        // Initialize the application
+        function init() {
+            setupEventListeners();
+            updateStats();
+            renderAlerts();
+            renderChart();
+            updateNotificationUI();
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Tab navigation
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.addEventListener('click', (e) => {
+                    switchTab(e.target.dataset.tab);
+                });
+            });
+
+            // Flat selector
+            document.getElementById('flat-selector').addEventListener('change', (e) => {
+                appState.selectedFlat = e.target.value;
+                renderChart();
+            });
+
+            // DND toggle
+            document.getElementById('dnd-toggle').addEventListener('click', toggleDND);
+
+            // Notification toggles
+            document.getElementById('sms-toggle').addEventListener('click', () => toggleNotification('sms'));
+            document.getElementById('email-toggle').addEventListener('click', () => toggleNotification('email'));
+
+            // Threshold inputs
+            document.getElementById('threshold-minutes').addEventListener('change', (e) => {
+                appState.notificationSettings.thresholdMinutes = parseInt(e.target.value);
+            });
+
+            document.getElementById('escalation-delay').addEventListener('change', (e) => {
+                appState.notificationSettings.escalationDelay = parseInt(e.target.value);
+            });
+        }
+
+        // Switch tabs
+        function switchTab(tabName) {
+            // Update active tab button
+            document.querySelectorAll('.tab-button').forEach(btn => btn.classList.remove('active'));
+            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
+
+            // Hide all tab content
+            document.querySelectorAll('[id$="-tab"]').forEach(tab => tab.classList.add('hidden'));
+
+            // Show selected tab
+            document.getElementById(`${tabName}-tab`).classList.remove('hidden');
+
+            appState.activeTab = tabName;
+        }
+
+        // Update statistics
+        function updateStats() {
+            const data = appState.waterUsageData;
+            
+            // Calculate average
+            const avgUsage = Math.round(data.reduce((sum, day) => sum + day.usage, 0) / data.length);
+            document.getElementById('avg-usage').textContent = `${avgUsage}L`;
+
+            // Today's usage
+            const todayUsage = data[data.length - 1]?.usage || 0;
+            document.getElementById('today-usage').textContent = `${todayUsage}L`;
+
+            // Usage change
+            if (data.length > 1) {
+                const yesterdayUsage = data[data.length - 2].usage;
+                const change = ((todayUsage - yesterdayUsage) / yesterdayUsage * 100).toFixed(1);
+                document.getElementById('usage-change').textContent = `${change > 0 ? '+' : ''}${change}% from yesterday`;
+            }
+
+            // Active alerts
+            const activeAlerts = appState.alerts.filter(a => a.status === 'active').length;
+            document.getElementById('active-alerts').textContent = activeAlerts;
+            document.getElementById('total-alerts').textContent = `${appState.alerts.length} total alerts today`;
+        }
+
+        // Render alerts
+        function renderAlerts() {
+            const container = document.getElementById('alerts-list');
+            container.innerHTML = '';
+
+            appState.alerts.forEach(alert => {
+                const alertDiv = document.createElement('div');
+                alertDiv.className = 'alert-item';
+                alertDiv.innerHTML = `
+                    <div class="alert-content">
+                        <div class="alert-status ${alert.status}"></div>
+                        <div class="alert-info">
+                            <h4>Flat ${alert.flatId} - ${alert.tapId}</h4>
+                            <p>Running for ${alert.duration} minutes</p>
+                        </div>
+                    </div>
+                    <div class="alert-meta">
+                        <p>${alert.timestamp}</p>
+                        <span class="alert-badge ${alert.status}">${alert.status}</span>
+                    </div>
+                `;
+                container.appendChild(alertDiv);
+            });
+        }
+
+        // Render chart
+        function renderChart() {
+            const ctx = document.getElementById('usage-chart').getContext('2d');
+            
+            if (usageChart) {
+                usageChart.destroy();
+            }
+
+            const data = appState.waterUsageData;
+            const labels = data.map(d => d.day);
+            let values;
+            
+            if (appState.selectedFlat === 'all') {
+                values = data.map(d => d.usage);
+            } else {
+                values = data.map(d => d[appState.selectedFlat] || 0);
+            }
+
+            usageChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Water Usage (L)',
+                        data: values,
+                        borderColor: '#2563eb',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 3,
+                        pointBackgroundColor: '#2563eb',
+                        pointBorderColor: '#2563eb',
+                        pointRadius: 6,
+                        pointHoverRadius: 8,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    aspectRatio: 2,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: {
+                                color: '#f0f0f0',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#666'
+                            }
+                        },
+                        y: {
+                            grid: {
+                                color: '#f0f0f0',
+                                drawBorder: false
+                            },
+                            ticks: {
+                                color: '#666'
+                            }
+                        }
+                    },
+                    elements: {
+                        point: {
+                            hoverBackgroundColor: '#2563eb'
+                        }
+                    }
+                }
+            });
+        }
+
+        // Toggle DND mode
+        function toggleDND() {
+            appState.notificationSettings.dndMode = !appState.notificationSettings.dndMode;
+            updateNotificationUI();
+        }
+
+        // Toggle notification type
+        function toggleNotification(type) {
+            if (appState.notificationSettings.dndMode) return;
+            
+            if (type === 'sms') {
+                appState.notificationSettings.smsNotifications = !appState.notificationSettings.smsNotifications;
+            } else if (type === 'email') {
+                appState.notificationSettings.emailNotifications = !appState.notificationSettings.emailNotifications;
+            }
+            updateNotificationUI();
+        }
+
+        // Update notification UI
+        function updateNotificationUI() {
+            const dndToggle = document.getElementById('dnd-toggle');
+            const smsToggle = document.getElementById('sms-toggle');
+            const emailToggle = document.getElementById('email-toggle');
+            const smsOption = document.getElementById('sms-option');
+            const emailOption = document.getElementById('email-option');
+            const bellOnIcon = document.querySelector('.bell-on-icon');
+            const bellOffIcon = document.querySelector('.bell-off-icon');
+
+            // Update DND toggle
+            if (appState.notificationSettings.dndMode) {
+                dndToggle.classList.add('active');
+                bellOnIcon.classList.add('hidden');
+                bellOffIcon.classList.remove('hidden');
+                smsOption.classList.add('disabled');
+                emailOption.classList.add('disabled');
+            } else {
+                dndToggle.classList.remove('active');
+                bellOnIcon.classList.remove('hidden');
+                bellOffIcon.classList.add('hidden');
+                smsOption.classList.remove('disabled');
+                emailOption.classList.remove('disabled');
+            }
+
+            // Update SMS toggle
+            if (appState.notificationSettings.smsNotifications) {
+                smsToggle.classList.add('active');
+            } else {
+                smsToggle.classList.remove('active');
+            }
+
+            // Update Email toggle
+            if (appState.notificationSettings.emailNotifications) {
+                emailToggle.classList.add('active');
+            } else {
+                emailToggle.classList.remove('active');
+            }
+
+            // Update bell icon in tab
+            const bellIcon = document.querySelector('.bell-icon');
+            if (appState.notificationSettings.dndMode) {
+                bellIcon.innerHTML = `
+                    <path d="M6.2 6.2a6 6 0 1012.8 12.8"/>
+                    <path d="M6.2 6.2L4 4m15.8 15.8L22 22"/>
+                    <path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                `;
+            } else {
+                bellIcon.innerHTML = `
+                    <path d="M6 8a6 6 0 0112 0c0 7 3 9 3 9H3s3-2 3-9"/>
+                    <path d="M13.73 21a2 2 0 01-3.46 0"/>
+                `;
+            }
+
+            // Update threshold inputs
+            document.getElementById('threshold-minutes').value = appState.notificationSettings.thresholdMinutes;
+            document.getElementById('escalation-delay').value = appState.notificationSettings.escalationDelay;
+        }
+
+        // Save notification settings
+        function saveNotificationSettings() {
+            // Here you would make an API call to save settings
+            console.log('Saving notification settings:', appState.notificationSettings);
+            
+            // Show success message (you could add a toast notification here)
+            alert('Notification settings saved successfully!');
+        }
+
+        // Initialize the app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+</body>
+</html>
